@@ -1,0 +1,100 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "27.0.3"
+
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+        // 不声明ndk标签,项目默认会创建一个libapp.so的文件
+        ndk {
+            // 声明创建so库的文件名,会自动添加lib前缀, 添加了前缀,不会自动添加
+            moduleName "libnative-lib"
+
+            //声明启用Android日志, 在c/c++的源文件中使用的#include <android/log.h> 日志将得到输出
+            ldLibs "log"
+            // 声明创建指定cpu架构的so库, 不声明的话, 默认(gradle 1.5.0)会生成4中架构 多一种mips架构
+            // 具体cpu架构的区别请参考:
+            // for detailed abiFilter descriptions, refer to "Supported ABIs" @
+            // https://developer.android.com/ndk/guides/abis.html#sa
+            abiFilters "armeabi", "armeabi-v7a", "x86","x86_64"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+    allprojects {
+        repositories {
+            // The order in which you list these repositories matter.
+            google()
+            jcenter()
+            maven { url "https://jitpack.io" }
+        }
+    }
+
+
+    sourceSets {
+        main {
+            // 1. 配置在根目录libs下可以加载第三方so库, (最好不要创建jniLibs, 在众多的开源库中可能会引起冲突,还没发现)
+            // 2. 运行时会自动将libs目录下的so库拷贝到指定目录
+            // 3. 如果自己创建的so不需要重新编译,可以将(app/build/intermediates/transforms)生成的so拷贝到这个目录
+            jniLibs.srcDirs = ['libs']
+            // 如果是单个文件夹 可以直接这样如下配置
+            // jniLibs.srcDir 'libs'
+        }
+    }
+
+    lintOptions {
+
+        //即使有lint报错也不停止打包
+
+        checkReleaseBuilds false
+        abortOnError false
+        disable 'MissingTranslation'
+    }
+
+
+    //Copy类型
+//    task makeJar(type: Copy) {
+//        //删除存在的
+//        delete 'build/libs/protocal.jar'
+//        //设置拷贝的文件
+//        from('build/intermediates/packaged-classes/release/')
+//        //打进jar包后的文件目录
+//        into('build/libs/')
+//        //将classes.jar放入build/libs/目录下
+//        //include ,exclude参数来设置过滤
+//        //（我们只关心classes.jar这个文件）
+//        include('classes.jar')
+//        //重命名
+//        rename ('classes.jar', 'protocal.jar')
+//    }
+//
+//    makeJar.dependsOn(build)
+////在终端执行生成JAR包
+//// gradlew makeJar
+
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
+    compile 'com.squareup.okio:okio:1.7.0'
+    compile 'com.android.support:multidex:1.0.3'
+//    compile project(':tool_bluetooth_lib')
+    api 'com.github.wanghaofei:bluetoothtwo:v1.0'
+//    api 'com.github.wanghaofei:bluetoothtwo:v1.0'
+//    implementation 'com.github.wanghaofei:bluetoothtwo:v1.0'
+
+}
